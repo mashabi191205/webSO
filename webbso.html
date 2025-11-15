@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Mahasiswa</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        input, button { margin: 5px; padding: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { cursor: pointer; }
+        .edit-btn { background-color: #ffc107; color: white; }
+        .delete-btn { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Data Mahasiswa</h1>
+    
+    <form id="studentForm">
+        <input type="text" id="name" placeholder="Nama" required>
+        <input type="text" id="nim" placeholder="NIM" required>
+        <input type="text" id="major" placeholder="Jurusan" required>
+        <button type="submit" id="submitBtn">Tambah Mahasiswa</button>
+    </form>
+    
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>NIM</th>
+                <th>Jurusan</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="studentBody">
+            <!-- Data mahasiswa akan ditampilkan di sini -->
+        </tbody>
+    </table>
+    
+    <script>
+        let isEditing = false;
+        let editingIndex = -1;
+        
+        // Fungsi untuk memuat data dari localStorage
+        function loadStudents() {
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const tbody = document.getElementById('studentBody');
+            tbody.innerHTML = '';
+            students.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.name}</td>
+                    <td>${student.nim}</td>
+                    <td>${student.major}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editStudent(${index})">Edit</button>
+                        <button class="delete-btn" onclick="deleteStudent(${index})">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Fungsi untuk menambah atau mengupdate mahasiswa
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const nim = document.getElementById('nim').value;
+            const major = document.getElementById('major').value;
+            
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            
+            if (isEditing) {
+                // Update mahasiswa yang sedang diedit
+                students[editingIndex] = { name, nim, major };
+                isEditing = false;
+                editingIndex = -1;
+                document.getElementById('submitBtn').textContent = 'Tambah Mahasiswa';
+            } else {
+                // Tambah mahasiswa baru
+                students.push({ name, nim, major });
+            }
+            
+            localStorage.setItem('students', JSON.stringify(students));
+            
+            // Reset form dan reload tabel
+            this.reset();
+            loadStudents();
+        });
+        
+        // Fungsi untuk mengedit mahasiswa
+        function editStudent(index) {
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            const student = students[index];
+            
+            // Isi form dengan data yang ada
+            document.getElementById('name').value = student.name;
+            document.getElementById('nim').value = student.nim;
+            document.getElementById('major').value = student.major;
+            
+            // Set mode edit
+            isEditing = true;
+            editingIndex = index;
+            document.getElementById('submitBtn').textContent = 'Update Mahasiswa';
+        }
+        
+        // Fungsi untuk menghapus mahasiswa
+        function deleteStudent(index) {
+            const students = JSON.parse(localStorage.getItem('students')) || [];
+            students.splice(index, 1);
+            localStorage.setItem('students', JSON.stringify(students));
+            loadStudents();
+        }
+        
+        // Muat data saat halaman dimuat
+        loadStudents();
+    </script>
+</body>
+</html>
